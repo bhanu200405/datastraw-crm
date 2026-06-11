@@ -86,7 +86,7 @@
                 document.getElementById('ticket-id').textContent = ticket.ticket_id;
                 document.getElementById('ticket-customer').textContent = ticket.customer_name;
                 document.getElementById('ticket-email').textContent = ticket.customer_email;
-                document.getElementById('ticket-date').textContent = new Date(ticket.created_at).toLocaleString();
+                document.getElementById('ticket-date').textContent = ticket.created_at;
                 document.getElementById('ticket-description').textContent = ticket.description;
                 document.getElementById('status-select').value = ticket.status;
 
