@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datastraw Support CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Support CRM</h1>
+            <a href="create.html" class="bg-white text-blue-600 px-4 py-2 rounded font-semibold hover:bg-blue-50 transition block">
+                + New Ticket
+            </a>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-6 mt-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            
+            <div class="p-4 border-b border-gray-200 bg-gray-50 flex gap-4 items-center">
+                <h2 class="text-lg font-semibold mr-4 whitespace-nowrap">All Tickets</h2>
+                
+                <input type="text" id="search-input" placeholder="Search by customer name..." 
+                       class="flex-grow p-2 border border-gray-300 rounded focus:ring-blue-500 outline-none">
+                
+                <select id="status-filter" class="p-2 border border-gray-300 rounded focus:ring-blue-500 outline-none bg-white">
+                    <option value="">All Statuses</option>
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Closed">Closed</option>
+                </select>
+            </div>
+            
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-600 text-sm border-b">
+                        <th class="p-4 py-3">Ticket ID</th>
+                        <th class="p-4 py-3">Customer</th>
+                        <th class="p-4 py-3">Subject</th>
+                        <th class="p-4 py-3">Status</th>
+                        <th class="p-4 py-3">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="ticket-list" class="text-sm">
+                    <tr><td colspan="5" class="p-4 text-center text-gray-500">Loading tickets...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000/api/tickets';
+
+        // Updated function to include search and status filters
+        async function fetchTickets() {
+            try {
+                // Grab the current values from the search box and dropdown
+                const searchQuery = document.getElementById('search-input').value;
+                const statusFilter = document.getElementById('status-filter').value;
+                
+                // Build the URL with the filters
+                let fetchUrl = API_URL + '?';
+                if (searchQuery) fetchUrl += `search=${encodeURIComponent(searchQuery)}&`;
+                if (statusFilter) fetchUrl += `status=${encodeURIComponent(statusFilter)}`;
+
+                const response = await fetch(fetchUrl);
+                const tickets = await response.json();
+                
+                const tableBody = document.getElementById('ticket-list');
+                tableBody.innerHTML = ''; 
+
+                if (tickets.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">No tickets found matching your criteria.</td></tr>';
+                    return;
+                }
+
+                tickets.forEach(ticket => {
+                    const date = new Date(ticket.created_at).toLocaleDateString();
+                    let statusColor = ticket.status === 'Open' ? 'bg-green-100 text-green-800' : 
+                                     (ticket.status === 'Closed' ? 'bg-gray-100 text-gray-800' : 'bg-yellow-100 text-yellow-800');
+
+                    const row = `
+                        <tr class="border-b hover:bg-gray-50 transition">
+                            <td class="p-4 font-medium"><a href="detail.html?id=${ticket.ticket_id}" class="text-blue-600 hover:underline">${ticket.ticket_id}</a></td>
+                            <td class="p-4">${ticket.customer_name}</td>
+                            <td class="p-4">${ticket.subject}</td>
+                            <td class="p-4"><span class="px-2 py-1 rounded-full text-xs font-semibold ${statusColor}">${ticket.status}</span></td>
+                            <td class="p-4 text-gray-500">${date}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } catch (error) {
+                console.error("Error fetching tickets:", error);
+                document.getElementById('ticket-list').innerHTML = '<tr><td colspan="5" class="p-4 text-center text-red-500">Error loading tickets.</td></tr>';
+            }
+        }
+
+        // Listeners: Refetch tickets whenever the user types or changes the dropdown
+        document.getElementById('search-input').addEventListener('input', fetchTickets);
+        document.getElementById('status-filter').addEventListener('change', fetchTickets);
+
+        // Initial load
+        fetchTickets();
+    </script>
+</body>
+</html>

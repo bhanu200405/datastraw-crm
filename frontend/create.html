@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Ticket - Support CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-xl font-bold hover:underline">Support CRM</a>
+        </div>
+    </nav>
+
+    <main class="max-w-2xl mx-auto p-6 mt-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 class="text-2xl font-bold mb-6">Create New Ticket</h2>
+            
+            <form id="create-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Customer Name</label>
+                    <input type="text" id="name" required class="mt-1 w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Customer Email</label>
+                    <input type="email" id="email" required class="mt-1 w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Subject</label>
+                    <input type="text" id="subject" required class="mt-1 w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Issue Description</label>
+                    <textarea id="description" rows="4" required class="mt-1 w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+                
+                <div class="flex justify-end gap-4 mt-6 pt-4 border-t border-gray-100">
+                    <a href="index.html" class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition">Cancel</a>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition">
+                        Submit Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('create-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevents the page from reloading when you hit submit
+
+            // Gather the data from the form
+            const ticketData = {
+                customer_name: document.getElementById('name').value,
+                customer_email: document.getElementById('email').value,
+                subject: document.getElementById('subject').value,
+                description: document.getElementById('description').value
+            };
+
+            try {
+                // Send a POST request to your backend
+                const response = await fetch('http://127.0.0.1:8000/api/tickets', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(ticketData)
+                });
+
+                if (response.ok) {
+                    // If successful, take the user back to the main dashboard
+                    window.location.href = 'index.html';
+                } else {
+                    alert('Failed to create ticket. Please try again.');
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert('Could not connect to the server. Is your backend running?');
+            }
+        });
+    </script>
+</body>
+</html>

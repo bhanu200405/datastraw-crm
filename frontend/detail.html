@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Details - Support CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <nav class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-xl font-bold hover:underline">Support CRM</a>
+        </div>
+    </nav>
+
+    <main class="max-w-3xl mx-auto p-6 mt-6">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            
+            <div class="flex justify-between items-start mb-6 border-b pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold" id="ticket-subject">Loading...</h2>
+                    <p class="text-gray-500 mt-1">Ticket ID: <span id="ticket-id" class="font-mono text-gray-700">...</span></p>
+                </div>
+                <span id="ticket-status" class="px-3 py-1 rounded-full text-sm font-semibold bg-gray-200 text-gray-800">...</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Customer</p>
+                    <p class="font-medium" id="ticket-customer">...</p>
+                    <p class="text-sm text-gray-600" id="ticket-email">...</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 font-medium">Created On</p>
+                    <p class="font-medium" id="ticket-date">...</p>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <p class="text-sm text-gray-500 font-medium mb-2">Issue Description</p>
+                <div class="bg-gray-50 p-4 rounded border text-gray-700 whitespace-pre-wrap" id="ticket-description">...</div>
+            </div>
+
+            <div class="border-t pt-6 mt-6">
+                <h3 class="text-lg font-bold mb-4">Update Ticket</h3>
+                <form id="update-form" class="flex items-end gap-4">
+                    <div class="flex-grow">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select id="status-select" class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500">
+                            <option value="Open">Open</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition h-[42px]">
+                        Save Update
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Get the Ticket ID from the URL (e.g., ?id=TKT-123456)
+        const urlParams = new URLSearchParams(window.location.search);
+        const ticketId = urlParams.get('id');
+        const API_URL = `http://127.0.0.1:8000/api/tickets/${ticketId}`;
+
+        // Fetch and display the ticket details
+        async function loadTicket() {
+            if (!ticketId) {
+                alert("No ticket ID provided.");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Ticket not found');
+                const ticket = await response.json();
+
+                // Populate the HTML with the data
+                document.getElementById('ticket-subject').textContent = ticket.subject;
+                document.getElementById('ticket-id').textContent = ticket.ticket_id;
+                document.getElementById('ticket-customer').textContent = ticket.customer_name;
+                document.getElementById('ticket-email').textContent = ticket.customer_email;
+                document.getElementById('ticket-date').textContent = new Date(ticket.created_at).toLocaleString();
+                document.getElementById('ticket-description').textContent = ticket.description;
+                document.getElementById('status-select').value = ticket.status;
+
+                // Color code the status badge
+                const statusBadge = document.getElementById('ticket-status');
+                statusBadge.textContent = ticket.status;
+                if (ticket.status === 'Open') statusBadge.className = 'px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800';
+                else if (ticket.status === 'Closed') statusBadge.className = 'px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800';
+                else statusBadge.className = 'px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800';
+
+            } catch (error) {
+                console.error(error);
+                alert("Error loading ticket details.");
+            }
+        }
+
+        // Handle the Update Form submission
+        document.getElementById('update-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const newStatus = document.getElementById('status-select').value;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus, notes: "" })
+                });
+
+                if (response.ok) {
+                    alert('Ticket updated successfully!');
+                    loadTicket(); // Reload the page to show the new status
+                } else {
+                    alert('Failed to update ticket.');
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert('Could not connect to the server.');
+            }
+        });
+
+        // Run the load function immediately
+        loadTicket();
+    </script>
+</body>
+</html>
