@@ -66,7 +66,7 @@
         // Get the Ticket ID from the URL (e.g., ?id=TKT-123456)
         const urlParams = new URLSearchParams(window.location.search);
         const ticketId = urlParams.get('id');
-        const API_URL = `https://datastraw-crm-backend.onrender.com`;
+        const API_URL = `https://datastraw-crm-backend.onrender.com/api/tickets`;
 
         // Fetch and display the ticket details
         async function loadTicket() {
